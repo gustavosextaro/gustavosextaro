@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { ShimmerButton } from './ui/shimmer-button';
+import { trackClick } from '@/lib/analytics';
 
 export function SpreadsheetModal() {
   const [isYearly, setIsYearly] = useState(false);
@@ -23,7 +24,10 @@ export function SpreadsheetModal() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Card className="overflow-hidden bg-card/80 shadow-lg backdrop-blur-sm text-center cursor-pointer hover:border-primary/40 transition-colors">
+        <Card 
+          onClick={() => trackClick('abrir-planilha')}
+          className="overflow-hidden bg-card/80 shadow-lg backdrop-blur-sm text-center cursor-pointer hover:border-primary/40 transition-colors"
+        >
           <CardHeader>
             <CardTitle>{config.cards.spreadsheet.title}</CardTitle>
             <CardDescription>{config.cards.spreadsheet.description}</CardDescription>
@@ -56,6 +60,7 @@ export function SpreadsheetModal() {
             href={config.links.letterboxd_filmes_planilha}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => trackClick('link-letterboxd-modal')}
             className="inline-block text-sm text-primary hover:text-primary/80 underline underline-offset-2 mb-6 transition-colors"
           >
             Clique aqui para conferir os filmes da planilha
@@ -97,7 +102,12 @@ export function SpreadsheetModal() {
           </div>
 
           <div className="flex flex-col gap-3">
-            <a href={finalPaymentUrl} target="_blank" rel="noopener noreferrer">
+            <a 
+              href={finalPaymentUrl} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              onClick={() => trackClick(isYearly ? 'pagamento-anual' : 'pagamento-mensal')}
+            >
               <Button
                 className="w-full h-12 text-base font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/80"
               >

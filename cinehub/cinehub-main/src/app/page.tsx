@@ -11,6 +11,9 @@ import { SpreadsheetModal } from '@/components/spreadsheet-modal';
 import { ShimmerButton } from '@/components/ui/shimmer-button';
 import { MicroExpander } from '@/components/ui/micro-expander';
 import { Instagram, MessageCircle } from 'lucide-react';
+import { AnalyticsWrapper } from '@/components/analytics-wrapper';
+import { TrackedLink } from '@/components/tracked-link';
+
 
 export default async function Home() {
 
@@ -39,7 +42,7 @@ export default async function Home() {
   const contactUrl = config.links.contact;
 
   return (
-    
+    <AnalyticsWrapper>
       <main className="container mx-auto flex max-w-[420px] flex-col gap-8 p-4 py-8 md:p-6 md:py-10">
         <div className="absolute top-4 right-4 flex gap-2">
             <a href={contactUrl} target="_blank" rel="noopener noreferrer">
@@ -68,20 +71,11 @@ export default async function Home() {
               <CardDescription>{config.cards.letterboxd.description}</CardDescription>
             </CardHeader>
             <CardContent>
-              <a
+              <TrackedLink 
                 href={letterboxdUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={config.cards.letterboxd.buttonText}
-                className="w-full block"
-              >
-                <ShimmerButton
-                  background="hsl(var(--secondary))"
-                  className="w-full h-12 text-base font-semibold text-secondary-foreground"
-                >
-                  {config.cards.letterboxd.buttonText}
-                </ShimmerButton>
-              </a>
+                trackingId="ir-letterboxd"
+                buttonText={config.cards.letterboxd.buttonText}
+              />
             </CardContent>
           </Card>
         </section>
@@ -97,6 +91,6 @@ export default async function Home() {
 
         <AppFooter />
       </main>
-    
+    </AnalyticsWrapper>
   );
 }
