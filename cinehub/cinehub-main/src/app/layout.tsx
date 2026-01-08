@@ -7,7 +7,7 @@ const appDescription = "Cinema todo dia. Lista com +3.000 filmes. Assista, avali
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002'),
-  title: 'Cinema Hub | Gustavo Sestaro',
+  title: 'Cinema Hub | Gustavo Sextaro',
   description: appDescription,
   appleWebApp: {
     capable: true,

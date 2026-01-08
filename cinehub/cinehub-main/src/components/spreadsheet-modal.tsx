@@ -48,9 +48,18 @@ export function SpreadsheetModal() {
             <DialogDescription className="text-lg text-muted-foreground">{config.modals.subscription.subtitle}</DialogDescription>
           </DialogHeader>
 
-          <p className="text-sm text-muted-foreground mb-6">
+          <p className="text-sm text-muted-foreground mb-4">
             {config.modals.subscription.description}
           </p>
+
+          <a 
+            href={config.links.letterboxd_filmes_planilha}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block text-sm text-primary hover:text-primary/80 underline underline-offset-2 mb-6 transition-colors"
+          >
+            Clique aqui para conferir os filmes da planilha
+          </a>
 
           <div className="flex justify-center mb-6">
             <div className="inline-flex items-center rounded-full bg-secondary p-1">

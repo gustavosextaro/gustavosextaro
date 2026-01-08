@@ -12,8 +12,9 @@ export function AppFooter() {
         <a href={instagramUrl} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-muted-foreground hover:text-foreground transition-colors">
           <Instagram className="h-6 w-6" />
         </a>
-        <a href={contactUrl} target="_blank" rel="noopener noreferrer" aria-label="Contato" className="text-muted-foreground hover:text-foreground transition-colors">
+        <a href={contactUrl} target="_blank" rel="noopener noreferrer" aria-label="Contato" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
           <MessageCircle className="h-6 w-6" />
+          <span className="text-sm">Contato</span>
         </a>
       </div>
       <div className="text-xs text-muted-foreground">

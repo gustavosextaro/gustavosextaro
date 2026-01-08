@@ -8,6 +8,7 @@ export const config = {
     payment_monthly: "https://pay.hub.la/h01wOlP6z0RH8KLSrf6N",
     payment_yearly: "https://pay.hub.la/hwYNDJGovajWZ0mXqGTk",
     letterboxd: "https://letterboxd.com/ghust4_/",
+    letterboxd_filmes_planilha: "https://letterboxd.com/ghust4_/list/filmes-da-planilha/",
     recommendations: "COLE_AQUI_O_LINK_DE_RECOMENDACOES",
     contact: "https://wa.link/m48729",
   },
