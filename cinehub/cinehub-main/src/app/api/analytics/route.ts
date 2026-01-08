@@ -1,133 +1,121 @@
-import { NextResponse } from 'next/server';
-import { promises as fs } from 'fs';
-import path from 'path';
-
-const DATA_FILE = path.join(process.cwd(), 'data', 'analytics.json');
+import { kv } from '@vercel/kv';
+import { NextRequest } from 'next/server';
 
 interface AnalyticsEvent {
   type: 'pageview' | 'click';
-  component?: string;
   timestamp: number;
-  referrer?: string;
-  userAgent?: string;
+  userAgent: string;
+  referrer: string;
+  componentName?: string;
 }
 
-interface AnalyticsData {
-  events: AnalyticsEvent[];
-}
+const ANALYTICS_KEY = 'analytics:events';
+const MAX_EVENTS = 10000;
 
-async function ensureDataFile() {
+export async function POST(request: NextRequest) {
   try {
-    await fs.mkdir(path.dirname(DATA_FILE), { recursive: true });
-    try {
-      await fs.access(DATA_FILE);
-    } catch {
-      // File doesn't exist, create it
-      await fs.writeFile(DATA_FILE, JSON.stringify({ events: [] }, null, 2));
-    }
-  } catch (error) {
-    console.error('Error ensuring data file:', error);
-  }
-}
+    const body = await request.json();
+    const { type, componentName } = body;
 
-async function readData(): Promise<AnalyticsData> {
-  try {
-    await ensureDataFile();
-    const data = await fs.readFile(DATA_FILE, 'utf-8');
-    return JSON.parse(data);
-  } catch (error) {
-    console.error('Error reading analytics data:', error);
-    return { events: [] };
-  }
-}
+    const event: AnalyticsEvent = {
+      type,
+      timestamp: Date.now(),
+      userAgent: request.headers.get('user-agent') || 'Unknown',
+      referrer: request.headers.get('referer') || 'Direct',
+      ...(componentName && { componentName }),
+    };
 
-async function writeData(data: AnalyticsData) {
-  try {
-    await ensureDataFile();
-    await fs.writeFile(DATA_FILE, JSON.stringify(data, null, 2));
-  } catch (error) {
-    console.error('Error writing analytics data:', error);
-  }
-}
+    // Add event to list
+    await kv.rpush(ANALYTICS_KEY, JSON.stringify(event));
+    
+    // Trim list to maintain max size
+    await kv.ltrim(ANALYTICS_KEY, -MAX_EVENTS, -1);
 
-export async function POST(request: Request) {
-  try {
-    const event: AnalyticsEvent = await request.json();
-    
-    const data = await readData();
-    data.events.push(event);
-    
-    // Keep only last 10,000 events to prevent file from growing too large
-    if (data.events.length > 10000) {
-      data.events = data.events.slice(-10000);
-    }
-    
-    await writeData(data);
-    
-    return NextResponse.json({ success: true });
+    return Response.json({ success: true });
   } catch (error) {
-    console.error('Analytics API error:', error);
-    return NextResponse.json({ error: 'Failed to track event' }, { status: 500 });
+    console.error('Analytics error:', error);
+    return Response.json({ success: false, error: 'Failed to save event' }, { status: 500 });
   }
 }
 
 export async function GET() {
   try {
-    const data = await readData();
+    // Get all events from KV
+    const eventsData = await kv.lrange(ANALYTICS_KEY, 0, -1) as string[];
     
-    // Calculate statistics
+    if (!eventsData || eventsData.length === 0) {
+      return Response.json({
+        totalPageviews: 0,
+        todayPageviews: 0,
+        weekPageviews: 0,
+        clicksByComponent: {},
+        referrers: {},
+        tiktokPercentage: 0,
+      });
+    }
+
+    const events: AnalyticsEvent[] = eventsData.map(e => JSON.parse(e));
+
+    // Calculate stats
     const now = Date.now();
     const oneDayAgo = now - (24 * 60 * 60 * 1000);
-    const sevenDaysAgo = now - (7 * 24 * 60 * 60 * 1000);
-    
-    const totalPageviews = data.events.filter(e => e.type === 'pageview').length;
-    const todayPageviews = data.events.filter(e => 
-      e.type === 'pageview' && e.timestamp > oneDayAgo
-    ).length;
-    const weekPageviews = data.events.filter(e => 
-      e.type === 'pageview' && e.timestamp > sevenDaysAgo
-    ).length;
-    
+    const oneWeekAgo = now - (7 * 24 * 60 * 60 * 1000);
+
+    const pageviews = events.filter(e => e.type === 'pageview');
+    const clicks = events.filter(e => e.type === 'click');
+
+    const totalPageviews = pageviews.length;
+    const todayPageviews = pageviews.filter(e => e.timestamp > oneDayAgo).length;
+    const weekPageviews = pageviews.filter(e => e.timestamp > oneWeekAgo).length;
+
     // Count clicks by component
     const clicksByComponent: Record<string, number> = {};
-    data.events
-      .filter(e => e.type === 'click' && e.component)
-      .forEach(e => {
-        const component = e.component!;
-        clicksByComponent[component] = (clicksByComponent[component] || 0) + 1;
-      });
-    
+    clicks.forEach(event => {
+      if (event.componentName) {
+        clicksByComponent[event.componentName] = (clicksByComponent[event.componentName] || 0) + 1;
+      }
+    });
+
     // Count referrers
     const referrers: Record<string, number> = {};
-    data.events
-      .filter(e => e.type === 'pageview' && e.referrer)
-      .forEach(e => {
-        const ref = e.referrer!;
-        if (ref) {
-          const domain = new URL(ref).hostname || 'Direct';
-          referrers[domain] = (referrers[domain] || 0) + 1;
+    pageviews.forEach(event => {
+      let referrer = 'Direct';
+      if (event.referrer && event.referrer !== 'Direct') {
+        try {
+          const url = new URL(event.referrer);
+          referrer = url.hostname;
+        } catch {
+          referrer = 'Direct';
         }
-      });
-    
-    // TikTok percentage
-    const tiktokViews = data.events.filter(e => 
-      e.type === 'pageview' && e.referrer && e.referrer.includes('tiktok')
+      }
+      referrers[referrer] = (referrers[referrer] || 0) + 1;
+    });
+
+    // Calculate TikTok percentage
+    const tiktokViews = pageviews.filter(e => 
+      e.referrer.toLowerCase().includes('tiktok')
     ).length;
     const tiktokPercentage = totalPageviews > 0 
-      ? Math.round((tiktokViews / totalPageviews) * 100) 
+      ? Math.round((tiktokViews / totalPageviews) * 100)
       : 0;
-    
-    return NextResponse.json({
+
+    return Response.json({
       totalPageviews,
       todayPageviews,
       weekPageviews,
       clicksByComponent,
       referrers,
       tiktokPercentage,
-      lastEvents: data.events.slice(-50).reverse(), // Last 50 events
     });
   } catch (error) {
-    console.error('Analytics GET error:', error);
-    return NextResponse.json({ error: 'Failed to fetch analytics' }, { status: 500 });
+    console.error('Analytics fetch error:', error);
+    return Response.json({
+      totalPageviews: 0,
+      todayPageviews: 0,
+      weekPageviews: 0,
+      clicksByComponent: {},
+      referrers: {},
+      tiktokPercentage: 0,
+    }, { status: 500 });
   }
 }

@@ -47,3 +47,5 @@ firestore-debug.log
 
 # analytics data
 /data
+
+.env*.local
