@@ -266,7 +266,7 @@ export function AnalyticsDashboard() {
 
 function formatComponentName(component: string): string {
   const names: Record<string, string> = {
-    'abrir-planilha': 'Abrir Planilha',
+    'abrir-planilha': 'Acessar Drive',
     'link-letterboxd-modal': 'Link Letterboxd (Modal)',
     'footer-instagram': 'Instagram (Footer)',
     'footer-contato': 'WhatsApp Contato (Footer)',

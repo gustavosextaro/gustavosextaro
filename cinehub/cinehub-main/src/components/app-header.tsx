@@ -35,7 +35,7 @@ export function AppHeader() {
         <h1 className="text-2xl font-bold tracking-tight">{config.name}</h1>
         <div className="mt-2 text-sm text-muted-foreground">
           <p>Apaixonado por cinema.</p>
-          <p>Minha planilha com +2.000 filmes.</p>
+          <p>Meu drive com +2.000 filmes.</p>
         </div>
       </div>
       <div className="flex flex-wrap justify-center gap-2 mt-2">

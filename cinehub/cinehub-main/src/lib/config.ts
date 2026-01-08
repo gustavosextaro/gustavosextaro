@@ -21,9 +21,9 @@ export const config = {
 
   cards: {
     spreadsheet: {
-      title: "Planilha com +2.000 filmes",
+      title: "Drive com +2.000 filmes",
       description: "Minha lista totalmente organizada para você ir direto no que procura ou descobrir algo novo.",
-      buttonText: "Abrir planilha",
+      buttonText: "Acessar Drive",
       note: "Atualizada frequentemente (10 filmes por semana)",
     },
     letterboxd: {
@@ -40,13 +40,13 @@ export const config = {
 
   modals: {
     subscription: {
-      title: "Acesso completo à planilha",
+      title: "Acesso completo ao Drive",
       subtitle: "Libere +2.000 filmes",
       description: "Tenha acesso a uma curadoria com mais de 2.000 filmes para explorar o mundo cult e os lançamentos em FullHD.",
       price_monthly: "R$ 29,00/mês",
       price_yearly: "R$ 147,00/ano",
-      button_primary_monthly: "Quero acessar a planilha!",
-      button_primary_yearly: "Quero o plano anual",
+      button_primary_monthly: "Quero acessar",
+      button_primary_yearly: "Quero acessar",
       button_secondary: "Agora não",
     },
     policy: {

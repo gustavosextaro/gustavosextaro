@@ -63,7 +63,7 @@ export function SpreadsheetModal() {
             onClick={() => trackClick('link-letterboxd-modal')}
             className="inline-block text-sm text-primary hover:text-primary/80 underline underline-offset-2 mb-6 transition-colors"
           >
-            Clique aqui para conferir os filmes da planilha
+            Clique aqui para conferir os filmes do drive
           </a>
 
           <div className="flex justify-center mb-6">
