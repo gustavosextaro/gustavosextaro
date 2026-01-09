@@ -1,4 +1,4 @@
-import { kv } from '@vercel/kv';
+import { db } from '@/lib/firebase-admin';
 import { NextRequest } from 'next/server';
 
 interface AnalyticsEvent {
@@ -9,27 +9,21 @@ interface AnalyticsEvent {
   componentName?: string;
 }
 
-const ANALYTICS_KEY = 'analytics:events';
-const MAX_EVENTS = 10000;
-
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { type, componentName } = body;
+    const { type, component } = body;
 
     const event: AnalyticsEvent = {
       type,
       timestamp: Date.now(),
       userAgent: request.headers.get('user-agent') || 'Unknown',
       referrer: request.headers.get('referer') || 'Direct',
-      ...(componentName && { componentName }),
+      ...(component && { componentName: component }),
     };
 
-    // Add event to list
-    await kv.rpush(ANALYTICS_KEY, JSON.stringify(event));
-    
-    // Trim list to maintain max size
-    await kv.ltrim(ANALYTICS_KEY, -MAX_EVENTS, -1);
+    // Save event to Firestore
+    await db.collection('analytics').add(event);
 
     return Response.json({ success: true });
   } catch (error) {
@@ -40,10 +34,10 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   try {
-    // Get all events from KV
-    const eventsData = await kv.lrange(ANALYTICS_KEY, 0, -1) as string[];
+    // Get all events from Firestore
+    const snapshot = await db.collection('analytics').get();
     
-    if (!eventsData || eventsData.length === 0) {
+    if (snapshot.empty) {
       return Response.json({
         totalPageviews: 0,
         todayPageviews: 0,
@@ -54,7 +48,7 @@ export async function GET() {
       });
     }
 
-    const events: AnalyticsEvent[] = eventsData.map(e => JSON.parse(e));
+    const events: AnalyticsEvent[] = snapshot.docs.map(doc => doc.data() as AnalyticsEvent);
 
     // Calculate stats
     const now = Date.now();
